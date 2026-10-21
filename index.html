@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ПП Оракул</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0f0d1a; --card:#1b1830; --card2:#25213f; --text:#f1eefc; --hint:#a49fc0;
+  --accent:#8b5cf6; --accent-text:#fff; --line:rgba(255,255,255,.08);
+  --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --p:#60a5fa; --f:#fbbf24; --c:#34d399; --k:#f472b6;
+}
+html.light{
+  --bg:#f5f3fb; --card:#ffffff; --card2:#efeaf9; --text:#1d1830; --hint:#6f6a85;
+  --line:rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{padding:16px 16px calc(90px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+h1{font-size:22px;margin:4px 0 4px}
+h2{font-size:17px;margin:22px 0 10px}
+.hint{color:var(--hint);font-size:13px}
+.card{background:var(--card);border-radius:16px;padding:14px;margin:10px 0;border:1px solid var(--line)}
+.row{display:flex;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-size:13px;color:var(--hint);margin-bottom:4px}
+input,select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{display:block;width:100%;padding:13px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-text);font-size:16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:var(--card2);color:var(--text)}
+.btn.small{display:inline-block;width:auto;padding:8px 14px;font-size:14px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px}
+.seg button{flex:1;border:0;background:none;color:var(--hint);padding:9px;border-radius:10px;font-size:15px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-text)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
+.chip.miss{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:var(--warn);cursor:default}
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.goal{background:var(--card2);border:2px solid transparent;border-radius:14px;padding:12px;cursor:pointer}
+.goal.on{border-color:var(--accent)}
+.goal b{display:block;font-size:15px}.goal span{font-size:12px;color:var(--hint)}
+.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.stat div{background:var(--card2);border-radius:12px;padding:10px 4px}
+.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--hint)}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin:4px 0 10px}
+.bar i{display:block;height:100%;border-radius:99px}
+.rc{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.rc .em{font-size:30px;width:48px;height:48px;display:grid;place-items:center;background:var(--card2);border-radius:14px;flex:none}
+.rc .nm{font-weight:600}
+.macro{font-size:12px;color:var(--hint);margin-top:2px}
+.macro b{font-weight:600}
+.k{color:var(--k)}.p{color:var(--p)}.f{color:var(--f)}.c{color:var(--c)}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--card2);color:var(--hint);margin:4px 4px 0 0}
+.empty{text-align:center;color:var(--hint);padding:18px 8px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav button{flex:1;border:0;background:none;color:var(--hint);font-size:11px;padding:4px 0;cursor:pointer}
+nav button i{display:block;font-style:normal;font-size:22px;line-height:1.2}
+nav button.on{color:var(--accent)}
+.verdict{border-radius:14px;padding:12px;margin:8px 0;font-size:14px}
+.verdict.good{background:rgba(34,197,94,.13);border:1px solid rgba(34,197,94,.35)}
+.verdict.warn{background:rgba(245,158,11,.13);border:1px solid rgba(245,158,11,.35)}
+.verdict.bad{background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.35)}
+.rules li{margin:6px 0}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:flex-end;animation:fade .2s}
+.sheet{background:var(--bg);width:100%;max-width:560px;margin:0 auto;max-height:90vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));animation:up .25s}
+.x{float:right;border:0;background:var(--card2);color:var(--text);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+ol.steps{padding-left:20px}ol.steps li{margin:6px 0}
+@keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;z-index:30;animation:fade .2s}
+/* crystal ball */
+.stage{position:relative;background:radial-gradient(ellipse at 50% 30%,#2a1a55 0%,#120b26 60%,#0a0716 100%);border-radius:24px;padding:26px 16px 22px;text-align:center;overflow:hidden;color:#efe9ff}
+.stage .hint{color:#b9aee0}
+.orbwrap{position:relative;width:220px;margin:10px auto 0;cursor:pointer;filter:drop-shadow(0 0 30px rgba(139,92,246,.6))}
+.orbwrap.shake{filter:drop-shadow(0 0 50px rgba(236,72,153,.9))}
+.orb{width:220px;height:220px;border-radius:50%;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 50% 60%,#c4b5fd 0%,#7c3aed 34%,#3b0764 70%,#12002b 100%);
+  clip-path:circle(50%);isolation:isolate;
+  box-shadow:0 0 50px rgba(139,92,246,.55),inset -22px -30px 60px rgba(0,0,0,.65),inset 12px 12px 40px rgba(255,255,255,.18);
+  transition:box-shadow .4s}
+.orb::before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,transparent,rgba(236,72,153,.45),transparent 30%,rgba(56,189,248,.4),transparent 60%,rgba(250,204,21,.3),transparent 85%);filter:blur(18px);animation:spin 14s linear infinite;mix-blend-mode:screen}
+.orb::after{content:"";position:absolute;left:18%;top:10%;width:34%;height:22%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.85),rgba(255,255,255,0) 70%);transform:rotate(-25deg)}
+.orb .in{position:absolute;inset:0;display:grid;place-items:center;font-size:64px;z-index:2;transition:opacity .4s,transform .4s;text-shadow:0 0 20px rgba(255,255,255,.6)}
+.orb .in.q{font-size:54px;color:rgba(255,255,255,.75);font-family:Georgia,serif}
+.base{width:170px;height:46px;margin:-18px auto 0;border-radius:50% 50% 14px 14px/60% 60% 14px 14px;background:linear-gradient(#b4873a,#5c3b12);box-shadow:0 10px 25px rgba(0,0,0,.5);position:relative;z-index:-0}
+.orbwrap.shake .orb{animation:shake .5s ease-in-out 3;box-shadow:0 0 90px rgba(236,72,153,.85),inset -22px -30px 60px rgba(0,0,0,.5),inset 12px 12px 40px rgba(255,255,255,.3)}
+.orbwrap.shake .orb::before{animation-duration:1.2s}
+.orbwrap.shake .in{opacity:0;transform:scale(.5)}
+.spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;animation:tw 2.4s infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-6px,2px) rotate(-3deg)}75%{transform:translate(6px,-2px) rotate(3deg)}}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
+.prophecy{margin-top:18px;animation:up .4s}
+.prophecy .say{font-family:Georgia,serif;font-style:italic;color:#d8ccff;font-size:15px}
+.prophecy .rname{font-size:20px;font-weight:700;margin:6px 0}
+.stage .macro{color:#b9aee0}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+
+<script>
+/* ================== DATA ================== */
+// g — группа для правил сочетаемости: P белок, S крахмал/крупы, V овощи (нейтральные), F жиры,
+// D кисломолочка, M молоко, FS кислые фрукты/ягоды, FW сладкие фрукты. u — раздел в «холодильнике». pk — вид белка.
+const ING = {
+  chicken:{n:'Куриное филе',e:'🍗',g:'P',u:'meat',pk:'мясо'},
+  beef:{n:'Говядина',e:'🥩',g:'P',u:'meat',pk:'мясо'},
+  turkey:{n:'Индейка',e:'🦃',g:'P',u:'meat',pk:'мясо'},
+  fish:{n:'Белая рыба',e:'🐟',g:'P',u:'fish',pk:'рыба'},
+  salmon:{n:'Лосось',e:'🐠',g:'P',u:'fish',pk:'рыба'},
+  shrimp:{n:'Креветки',e:'🍤',g:'P',u:'fish',pk:'рыба'},
+  eggs:{n:'Яйца',e:'🥚',g:'P',u:'dairy',pk:'яйца'},
+  cottage:{n:'Творог',e:'🧀',g:'P',u:'dairy',pk:'молочный белок'},
+  cheese:{n:'Сыр / фета',e:'🧀',g:'P',u:'dairy',pk:'молочный белок'},
+  yogurt:{n:'Греческий йогурт',e:'🥛',g:'D',u:'dairy'},
+  kefir:{n:'Кефир',e:'🥛',g:'D',u:'dairy'},
+  milk:{n:'Молоко',e:'🥛',g:'M',u:'dairy'},
+  tofu:{n:'Тофу',e:'⬜',g:'P',u:'legume',pk:'растительный белок'},
+  lentils:{n:'Чечевица',e:'🫘',g:'S',u:'legume'},
+  chickpeas:{n:'Нут',e:'🫘',g:'S',u:'legume'},
+  buckwheat:{n:'Гречка',e:'🌾',g:'S',u:'starch'},
+  rice:{n:'Рис',e:'🍚',g:'S',u:'starch'},
+  oats:{n:'Овсянка',e:'🥣',g:'S',u:'starch'},
+  quinoa:{n:'Киноа',e:'🌾',g:'S',u:'starch'},
+  pasta:{n:'Цельнозерновая паста',e:'🍝',g:'S',u:'starch'},
+  potato:{n:'Картофель',e:'🥔',g:'S',u:'starch'},
+  bread:{n:'Цельнозерновой хлеб',e:'🍞',g:'S',u:'starch'},
+  broccoli:{n:'Брокколи',e:'🥦',g:'V',u:'veg'},
+  cauliflower:{n:'Цветная капуста',e:'🥦',g:'V',u:'veg'},
+  zucchini:{n:'Кабачок',e:'🥒',g:'V',u:'veg'},
+  eggplant:{n:'Баклажан',e:'🍆',g:'V',u:'veg'},
+  tomato:{n:'Помидоры',e:'🍅',g:'V',u:'veg'},
+  cucumber:{n:'Огурцы',e:'🥒',g:'V',u:'veg'},
+  pepper:{n:'Болгарский перец',e:'🫑',g:'V',u:'veg'},
+  carrot:{n:'Морковь',e:'🥕',g:'V',u:'veg'},
+  onion:{n:'Лук',e:'🧅',g:'V',u:'veg'},
+  cabbage:{n:'Капуста',e:'🥬',g:'V',u:'veg'},
+  spinach:{n:'Шпинат',e:'🥬',g:'V',u:'veg'},
+  lettuce:{n:'Листья салата',e:'🥬',g:'V',u:'veg'},
+  mushrooms:{n:'Грибы',e:'🍄',g:'V',u:'veg'},
+  beet:{n:'Свёкла',e:'🟣',g:'V',u:'veg'},
+  greens:{n:'Зелень',e:'🌿',g:'V',u:'veg'},
+  lemon:{n:'Лимон',e:'🍋',g:'V',u:'veg'},
+  avocado:{n:'Авокадо',e:'🥑',g:'F',u:'fat'},
+  oliveoil:{n:'Оливковое масло',e:'🫒',g:'F',u:'fat'},
+  nuts:{n:'Орехи',e:'🥜',g:'F',u:'fat'},
+  apple:{n:'Яблоки',e:'🍏',g:'FS',u:'fruit'},
+  berries:{n:'Ягоды',e:'🫐',g:'FS',u:'fruit'},
+  banana:{n:'Бананы',e:'🍌',g:'FW',u:'fruit'},
+};
+const SECTIONS = [
+  ['meat','Мясо и птица'],['fish','Рыба и морепродукты'],['dairy','Яйца и молочное'],
+  ['starch','Крупы и гарниры'],['legume','Бобовые и тофу'],['veg','Овощи и зелень'],
+  ['fat','Полезные жиры'],['fruit','Фрукты и ягоды'],
+];
+const MEALS = {breakfast:'Завтрак',lunch:'Обед',dinner:'Ужин',snack:'Перекус'};
+
+// k ккал, p белки, f жиры, c углеводы — на порцию. opt — необязательные ингредиенты. t — минут.
+const RECIPES = [
+ {id:'r1',n:'Курица с брокколи на пару',e:'🥦',m:['lunch','dinner'],ing:['chicken','broccoli'],opt:['lemon','greens'],k:280,p:38,f:8,c:10,t:20,
+  s:['Нарежь филе (150 г) кусочками, посоли и поперчи.','Брокколи (200 г) разбери на соцветия.','Готовь всё на пару 15–18 минут.','Сбрызни лимоном и посыпь зеленью.']},
+ {id:'r2',n:'Говядина с овощами-гриль',e:'🥩',m:['lunch','dinner'],ing:['beef','zucchini','pepper'],opt:['eggplant','greens'],k:390,p:36,f:21,c:12,t:30,
+  s:['Говядину (150 г) нарежь полосками, замаринуй со специями на 10 минут.','Овощи нарежь крупно.','Обжарь мясо на гриль-сковороде по 3–4 минуты, затем овощи.','Подавай с зеленью.']},
+ {id:'r3',n:'Лосось со шпинатом',e:'🐟',m:['lunch','dinner'],ing:['salmon','spinach'],opt:['lemon'],k:420,p:34,f:28,c:5,t:25,
+  s:['Стейк лосося (150 г) посоли и сбрызни лимоном.','Запекай 15 минут при 190 °C.','Шпинат прогрей на сковороде 2 минуты с каплей воды.','Выложи рыбу на шпинат.']},
+ {id:'r4',n:'Овощной омлет',e:'🍳',m:['breakfast','dinner'],ing:['eggs','tomato','spinach'],opt:['pepper','greens'],k:290,p:19,f:20,c:8,t:15,
+  s:['Взбей 3 яйца со щепоткой соли.','Обжарь помидоры и шпинат 2 минуты.','Залей яйцами, накрой крышкой на 5–6 минут.','Посыпь зеленью.']},
+ {id:'r5',n:'Гречка с грибами и луком',e:'🍄',m:['lunch','dinner'],ing:['buckwheat','mushrooms','onion'],opt:['greens'],k:340,p:12,f:8,c:56,t:25,
+  s:['Свари гречку (70 г сухой) 15–18 минут.','Лук и грибы обжарь на капле масла до золотистого цвета.','Смешай с гречкой и прогрей 2 минуты.','Добавь зелень.']},
+ {id:'r6',n:'Овощной плов без мяса',e:'🍚',m:['lunch'],ing:['rice','carrot','onion','pepper'],opt:['greens'],k:370,p:8,f:9,c:66,t:35,
+  s:['Обжарь лук, морковь и перец 5 минут.','Добавь промытый рис (70 г) и залей водой в 2 раза больше.','Томи под крышкой 20 минут на слабом огне.','Дай постоять 5 минут и перемешай.']},
+ {id:'r7',n:'Индейка с цветной капустой',e:'🦃',m:['lunch','dinner'],ing:['turkey','cauliflower'],opt:['greens','onion'],k:310,p:36,f:10,c:12,t:30,
+  s:['Нарежь индейку (150 г) кубиками.','Обжарь с луком 7 минут.','Добавь соцветия капусты и 50 мл воды и туши 12 минут.','Посыпь зеленью.']},
+ {id:'r8',n:'Белая рыба, запечённая с овощами',e:'🐠',m:['lunch','dinner'],ing:['fish','zucchini','tomato'],opt:['onion','lemon'],k:260,p:32,f:7,c:12,t:30,
+  s:['Выложи кабачок и помидоры кружками в форму.','Сверху положи филе рыбы (180 г), посоли и сбрызни лимоном.','Запекай 20 минут при 190 °C.']},
+ {id:'r9',n:'Креветки с кабачком',e:'🍤',m:['dinner'],ing:['shrimp','zucchini'],opt:['lemon','greens'],k:230,p:28,f:9,c:8,t:15,
+  s:['Кабачок нарежь полукольцами и обжарь 4 минуты.','Добавь очищенные креветки (180 г) и готовь 3 минуты.','Заправь лимоном и зеленью.']},
+ {id:'r10',n:'Овсянка с орехами и корицей',e:'🥣',m:['breakfast'],ing:['oats','nuts'],opt:[],k:330,p:10,f:14,c:42,t:10,
+  s:['Свари овсянку (50 г) на воде 5–7 минут.','Добавь корицу.','Посыпь рублеными орехами (15 г).']},
+ {id:'r11',n:'Творог с огурцом и зеленью',e:'🥒',m:['breakfast','snack','dinner'],ing:['cottage','cucumber','greens'],opt:[],k:210,p:27,f:5,c:8,t:5,
+  s:['Огурец нарежь мелким кубиком, зелень поруби.','Смешай с творогом (180 г) и щепоткой соли.']},
+ {id:'r12',n:'Греческий салат',e:'🥗',m:['lunch','snack'],ing:['tomato','cucumber','cheese','oliveoil'],opt:['pepper','onion','lettuce'],k:290,p:10,f:23,c:10,t:10,
+  s:['Овощи нарежь крупно.','Добавь кубики феты (50 г).','Заправь ложкой оливкового масла и орегано.']},
+ {id:'r13',n:'Чечевичный суп',e:'🍲',m:['lunch'],ing:['lentils','carrot','onion','tomato'],opt:['greens'],k:300,p:18,f:5,c:45,t:40,
+  s:['Обжарь лук и морковь 5 минут.','Добавь чечевицу (70 г), помидоры и 700 мл воды.','Вари 25 минут, по желанию пробей блендером.','Подавай с зеленью.']},
+ {id:'r14',n:'Хумус с овощными палочками',e:'🫘',m:['snack','lunch'],ing:['chickpeas','carrot','cucumber'],opt:['lemon','oliveoil'],k:320,p:13,f:14,c:36,t:15,
+  s:['Пробей блендером варёный нут (120 г) с лимонным соком, маслом и солью.','Нарежь морковь и огурец палочками.','Обмакивай палочки в хумус.']},
+ {id:'r15',n:'Тофу стир-фрай с брокколи',e:'🥢',m:['lunch','dinner'],ing:['tofu','broccoli','pepper'],opt:['onion'],k:290,p:22,f:15,c:14,t:15,
+  s:['Обжарь кубики тофу (150 г) до корочки.','Добавь брокколи и перец и жарь на сильном огне 5 минут.','Влей ложку соевого соуса.']},
+ {id:'r16',n:'Запечённый картофель с салатом',e:'🥔',m:['lunch'],ing:['potato','lettuce','oliveoil'],opt:['greens'],k:330,p:6,f:11,c:50,t:40,
+  s:['Разрежь картофель (250 г) дольками и смешай с маслом и травами.','Запекай 30 минут при 200 °C.','Подавай с листьями салата.']},
+ {id:'r17',n:'Паста примавера',e:'🍝',m:['lunch'],ing:['pasta','zucchini','tomato'],opt:['pepper','oliveoil'],k:410,p:13,f:9,c:70,t:20,
+  s:['Отвари пасту (80 г) до состояния аль денте.','Обжарь кабачок и помидоры 5 минут.','Смешай с пастой и добавь базилик.']},
+ {id:'r18',n:'Киноа-боул с авокадо',e:'🥑',m:['lunch'],ing:['quinoa','avocado','cucumber','tomato'],opt:['spinach'],k:440,p:12,f:21,c:48,t:20,
+  s:['Свари киноа (60 г) 15 минут.','Нарежь овощи и половинку авокадо.','Собери в миске и сбрызни лимоном.']},
+ {id:'r19',n:'Тушёная капуста с говядиной',e:'🥬',m:['lunch','dinner'],ing:['beef','cabbage','carrot','onion'],opt:[],k:350,p:30,f:17,c:16,t:50,
+  s:['Обжарь говядину (130 г) кубиками 5 минут.','Добавь лук и морковь, затем нашинкованную капусту.','Туши под крышкой 35–40 минут.']},
+ {id:'r20',n:'Свекольный салат с орехами',e:'🥗',m:['snack','lunch'],ing:['beet','nuts'],opt:['greens','oliveoil'],k:250,p:6,f:16,c:20,t:10,
+  s:['Натри варёную свёклу (200 г).','Добавь рубленые грецкие орехи (20 г) и чеснок.','Заправь маслом.']},
+ {id:'r21',n:'Курица с овощным рагу',e:'🍲',m:['lunch','dinner'],ing:['chicken','zucchini','eggplant','tomato'],opt:['onion','pepper'],k:320,p:36,f:9,c:18,t:35,
+  s:['Обжарь курицу кусочками 6 минут.','Добавь кубики баклажана и кабачка и жарь 5 минут.','Положи помидоры и туши 15 минут.']},
+ {id:'r22',n:'Кето-завтрак: яйца и авокадо',e:'🥑',m:['breakfast'],ing:['eggs','avocado'],opt:['lettuce','tomato'],k:380,p:16,f:32,c:6,t:10,
+  s:['Свари 2 яйца или сделай яичницу.','Нарежь половинку авокадо.','Подавай с листьями салата и помидором.']},
+ {id:'r23',n:'Греческий йогурт с ягодами',e:'🫐',m:['breakfast','snack'],ing:['yogurt','berries'],opt:['nuts'],k:200,p:15,f:6,c:20,t:3,
+  s:['Выложи йогурт (170 г) в миску.','Добавь горсть ягод.','По желанию посыпь орехами.']},
+ {id:'r24',n:'Банан с орехами',e:'⚡',m:['snack'],ing:['banana','nuts'],opt:[],k:290,p:6,f:15,c:32,t:2,
+  s:['Съешь банан и горсть орехов (20 г) за 30–60 минут до тренировки или когда нужен заряд энергии.']},
+ {id:'r25',n:'Суп-пюре из брокколи и цветной капусты',e:'🥣',m:['lunch','dinner'],ing:['broccoli','cauliflower','onion'],opt:['greens'],k:150,p:7,f:6,c:16,t:30,
+  s:['Обжарь лук 3 минуты.','Добавь капусту и 500 мл воды и вари 15 минут.','Пробей блендером и посоли.']},
+ {id:'r26',n:'Перец, фаршированный индейкой',e:'🫑',m:['lunch','dinner'],ing:['turkey','pepper','tomato'],opt:['onion'],k:330,p:32,f:13,c:16,t:45,
+  s:['Смешай фарш индейки (150 г) с луком и специями.','Начини половинки перца.','Залей тёртыми помидорами и запекай 30 минут при 190 °C.']},
+ {id:'r27',n:'Шакшука',e:'🍳',m:['breakfast'],ing:['eggs','tomato','pepper'],opt:['onion','greens'],k:280,p:17,f:18,c:12,t:20,
+  s:['Потуши перец, лук и помидоры 8 минут.','Сделай лунки и вбей 2–3 яйца.','Накрой крышкой на 5 минут.']},
+ {id:'r28',n:'Яблоко с орехами',e:'🍏',m:['snack'],ing:['apple','nuts'],opt:[],k:220,p:5,f:15,c:20,t:2,
+  s:['Нарежь яблоко дольками.','Добавь горсть орехов (20 г).']},
+ {id:'r29',n:'Кефир с огурцом и зеленью',e:'🥛',m:['snack','dinner'],ing:['kefir','cucumber','greens'],opt:[],k:140,p:8,f:5,c:12,t:5,
+  s:['Натри огурец, поруби зелень.','Смешай с кефиром (300 мл) и щепоткой соли. Получится лёгкий холодный суп.']},
+ {id:'r30',n:'Рыба на гриле с салатом',e:'🥗',m:['lunch','dinner'],ing:['fish','lettuce','cucumber'],opt:['lemon','oliveoil'],k:270,p:30,f:12,c:6,t:20,
+  s:['Обжарь филе рыбы (170 г) по 3–4 минуты с каждой стороны.','Листья салата и огурец заправь лимоном и маслом.']},
+];
+
+const GOALS = {
+  lose:{n:'Похудеть',d:'дефицит калорий, больше белка',e:'🔥',kc:.82,pk:1.8,fk:.8},
+  keep:{n:'Поддерживать здоровье',d:'баланс и разнообразие',e:'💚',kc:1,pk:1.4,fk:.9},
+  energy:{n:'Больше энергии',d:'сложные углеводы, ровный сахар',e:'⚡',kc:1.03,pk:1.5,fk:.9},
+  gain:{n:'Набрать вес',d:'профицит калорий, белок',e:'💪',kc:1.12,pk:1.8,fk:1},
+};
+const DIETS = {
+  balanced:'Сбалансированное ПП', protein:'Высокобелковое', lowcarb:'Низкоуглеводное', veg:'Вегетарианское', vegan:'Веганское',
+};
+const ACT = [[1.2,'Почти без движения'],[1.375,'Лёгкая (1–3 тренировки в неделю)'],[1.55,'Средняя (3–5 тренировок)'],[1.725,'Высокая (6–7 тренировок)'],[1.9,'Очень высокая (физическая работа и спорт)']];
+
+const PROPHECIES = [
+  'Туман рассеивается… Звёзды советуют:','Шар видит на твоей тарелке:','Вселенная шепчет:',
+  'Сегодня тебе суждено отведать:','Духи здорового питания выбрали:','В глубине шара проступает…',
+];
+
+/* ================== STATE ================== */
+const tg = window.Telegram && window.Telegram.WebApp;
+const today = () => new Date().toISOString().slice(0,10);
+const store = {
+  get(k,d){try{const v=localStorage.getItem('ppo_'+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('ppo_'+k,JSON.stringify(v))}catch(e){}},
+};
+const S = {
+  tab: null,
+  profile: store.get('profile', null),
+  fridge: new Set(store.get('fridge', [])),
+  shop: store.get('shop', []),
+  log: store.get('log', {date:today(),items:[]}),
+  meal: 'all',
+  compat: new Set(),
+  q: '',
+  ball: null,
+};
+if (S.log.date !== today()) S.log = {date:today(),items:[]};
+const save = () => {
+  store.set('profile',S.profile); store.set('fridge',[...S.fridge]); store.set('shop',S.shop); store.set('log',S.log);
+};
+const haptic = (t='light') => { try{ tg && tg.HapticFeedback.impactOccurred(t) }catch(e){} };
+
+/* ================== LOGIC ================== */
+function calcNorm(p){
+  const g = GOALS[p.goal];
+  const bmr = 10*p.weight + 6.25*p.height - 5*p.age + (p.sex==='m'?5:-161);
+  const tdee = bmr*p.act;
+  const kcal = Math.round(tdee*g.kc/10)*10;
+  const prot = Math.round(p.weight*g.pk);
+  const fat = Math.round(p.weight*g.fk);
+  const carb = Math.max(50, Math.round((kcal - prot*4 - fat*9)/4));
+  const bmi = p.weight/((p.height/100)**2);
+  return {bmr:Math.round(bmr), tdee:Math.round(tdee), kcal, prot, fat, carb, water:(p.weight*0.03).toFixed(1), bmi:bmi.toFixed(1)};
+}
+
+function compat(ids){
+  const items = ids.map(id=>({id,...ING[id]}));
+  const by = g => items.filter(i=>i.g===g);
+  const names = arr => arr.map(i=>i.n.toLowerCase()).join(', ');
+  const P=by('P'),Sx=by('S'),V=by('V'),F=by('F'),D=by('D'),M=by('M'),FS=by('FS'),FW=by('FW');
+  const issues=[];
+  if(P.length && Sx.length) issues.push({l:'bad',t:`Белок (${names(P)}) + крахмал (${names(Sx)}). Для белка желудку нужна кислая среда, для крахмала щелочная, поэтому переваривание замедляется и появляется тяжесть. Ешь белок с овощами, а крупы отдельно.`});
+  const kinds=[...new Set(P.map(i=>i.pk))];
+  if(kinds.length>1) issues.push({l:'warn',t:`Разные виды белка за один приём (${kinds.join(', ')}). Лучше один источник белка на тарелке.`});
+  if(FW.length && items.some(i=>!['FW','F'].includes(i.g))) issues.push({l:'bad',t:`Сладкие фрукты (${names(FW)}) лучше есть отдельно: за 30 минут до еды или через 2 часа после. С другой едой они бродят.`});
+  if(FS.length && (P.length||Sx.length)) issues.push({l:'warn',t:`Кислые фрукты и ягоды (${names(FS)}) мешают переваривать белок и крахмал. Подойдут с кисломолочкой, орехами или как отдельный перекус.`});
+  const hardP=P.filter(i=>i.pk!=='молочный белок');
+  if(D.length && hardP.length) issues.push({l:'bad',t:`Кисломолочное (${names(D)}) плохо сочетается с мясом, рыбой, яйцами и тофу.`});
+  else if(D.length && Sx.length) issues.push({l:'warn',t:`Кисломолочное + крахмал — терпимо, но не лучший вариант.`});
+  if(M.length && items.length>1) issues.push({l:'warn',t:`Молоко — отдельная еда. Его лучше пить отдельно от других продуктов.`});
+  let level='good';
+  if(issues.some(i=>i.l==='warn')) level='warn';
+  if(issues.some(i=>i.l==='bad')) level='bad';
+  let good='';
+  if(level==='good'){
+    if(P.length && V.length) good='Белок + овощи — идеальная пара. Клетчатка помогает белку усвоиться.';
+    else if(Sx.length && V.length) good='Крахмал + овощи — отличное сочетание для энергии без тяжести.';
+    else if(D.length && FS.length) good='Кисломолочка + кислые ягоды — хорошая пара для лёгкого перекуса.';
+    else if(F.length && (FS.length||FW.length)) good='Фрукты + орехи — хороший энергетический перекус.';
+    else if(V.length && !P.length && !Sx.length) good='Овощи нейтральны и сочетаются почти со всем.';
+    else good='Хорошее сочетание.';
+  }
+  return {level,issues,good};
+}
+
+function dietOk(r,diet){
+  const gs = r.ing.map(i=>ING[i]);
+  const animal = gs.some(i=>i.u==='meat'||i.u==='fish');
+  const dairyEgg = r.ing.some(i=>['eggs','cottage','cheese','yogurt','kefir','milk'].includes(i));
+  switch(diet){
+    case 'protein': return r.p>=20;
+    case 'lowcarb': return r.c<=20;
+    case 'veg': return !animal;
+    case 'vegan': return !animal && !dairyEgg;
+    default: return true;
+  }
+}
+function goalScore(r,goal){
+  const hasS = r.ing.some(i=>ING[i].g==='S');
+  switch(goal){
+    case 'lose': return (r.p*4/r.k)*100 - Math.max(0,r.k-400)/8;
+    case 'gain': return r.k/10 + r.p/2;
+    case 'energy': return r.c/2 + (hasS?15:0) + r.p/4;
+    default: return 20 + Math.min(r.p,30)/2;
+  }
+}
+const missing = r => r.ing.filter(i=>!S.fridge.has(i));
+const prof = () => S.profile || {goal:'keep',diet:'balanced'};
+function pool(meal){
+  const p = prof();
+  return RECIPES.filter(r=>dietOk(r,p.diet) && (meal==='all'||r.m.includes(meal)))
+    .sort((a,b)=>goalScore(b,p.goal)-goalScore(a,p.goal));
+}
+function mealNow(){
+  const h=new Date().getHours();
+  return h<11?'breakfast':h<16?'lunch':h<18?'snack':'dinner';
+}
+
+/* ================== UI HELPERS ================== */
+const $ = s => document.querySelector(s);
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
+const macro = r => `<span class="k"><b>${r.k}</b> ккал</span> · <span class="p">Б ${r.p}</span> · <span class="f">Ж ${r.f}</span> · <span class="c">У ${r.c}</span> · ⏱ ${r.t} мин`;
+function recipeCard(r, showMiss=true){
+  const miss = missing(r);
+  return `<div class="card rc" data-r="${r.id}">
+    <div class="em">${r.e}</div>
+    <div style="flex:1">
+      <div class="nm">${r.n}</div>
+      <div class="macro">${macro(r)}</div>
+      ${showMiss && miss.length && miss.length<r.ing.length ? `<div style="margin-top:6px" class="chips">${miss.map(i=>`<span class="chip miss" style="padding:3px 9px;font-size:12px">+ ${ING[i].n}</span>`).join('')}</div>`:''}
+      <div>${r.m.map(m=>`<span class="tag">${MEALS[m]}</span>`).join('')}</div>
+    </div></div>`;
+}
+
+/* ================== TABS ================== */
+const TABS = [
+  ['ball','🔮','Шар'],['fridge','🧊','Продукты'],['recipes','🍽','Рецепты'],['compat','⚖️','Сочетания'],['profile','👤','Профиль'],
+];
+function renderNav(){
+  $('#nav').innerHTML = TABS.map(([id,ic,t])=>`<button data-tab="${id}" class="${S.tab===id?'on':''}"><i>${ic}</i>${t}</button>`).join('');
+}
+function go(tab){ S.tab=tab; renderNav(); render(); window.scrollTo(0,0); }
+
+function render(){
+  const v = {ball:vBall,fridge:vFridge,recipes:vRecipes,compat:vCompat,profile:vProfile}[S.tab]();
+  $('#app').innerHTML = v;
+  if(S.tab==='ball') sparkles();
+}
+
+/* ---------- PROFILE ---------- */
+function vProfile(){
+  const p = S.profile || {sex:'f',age:28,height:168,weight:62,act:1.375,goal:'keep',diet:'balanced'};
+  const n = S.profile ? calcNorm(S.profile) : null;
+  const eaten = S.log.items.reduce((a,i)=>({k:a.k+i.k,p:a.p+i.p,f:a.f+i.f,c:a.c+i.c}),{k:0,p:0,f:0,c:0});
+  const bar=(v,max,col)=>`<div class="bar"><i style="width:${Math.min(100,v/max*100)}%;background:${col}"></i></div>`;
+  return `
+  <h1>${S.profile?'Твоя норма КБЖУ':'Давай познакомимся'}</h1>
+  <div class="hint">Посчитаем суточную норму калорий, белков, жиров и углеводов по формуле Миффлина — Сан Жеора.</div>
+  ${n?`
+  <div class="card">
+    <div class="stat">
+      <div><b class="k">${n.kcal}</b><span>ккал</span></div>
+      <div><b class="p">${n.prot}</b><span>белки, г</span></div>
+      <div><b class="f">${n.fat}</b><span>жиры, г</span></div>
+      <div><b class="c">${n.carb}</b><span>углев., г</span></div>
+    </div>
+    <div class="hint" style="margin-top:10px">Базовый обмен: ${n.bmr} ккал · С учётом активности: ${n.tdee} ккал · Вода: ~${n.water} л · ИМТ: ${n.bmi}</div>
+  </div>
+  <h2>Сегодня съедено</h2>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><span>Калории</span><span class="hint">${eaten.k} / ${n.kcal}</span></div>${bar(eaten.k,n.kcal,'var(--k)')}
+    <div class="row" style="justify-content:space-between"><span>Белки</span><span class="hint">${eaten.p} / ${n.prot} г</span></div>${bar(eaten.p,n.prot,'var(--p)')}
+    <div class="row" style="justify-content:space-between"><span>Жиры</span><span class="hint">${eaten.f} / ${n.fat} г</span></div>${bar(eaten.f,n.fat,'var(--f)')}
+    <div class="row" style="justify-content:space-between"><span>Углеводы</span><span class="hint">${eaten.c} / ${n.carb} г</span></div>${bar(eaten.c,n.carb,'var(--c)')}
+    ${S.log.items.length?`<div class="hint">${S.log.items.map(i=>RECIPES.find(r=>r.id===i.id)?.n).join(' · ')}</div>
+      <button class="btn ghost small" style="margin-top:8px" onclick="S.log.items=[];save();render()">Сбросить день</button>`
+      :`<div class="hint">Открой рецепт и нажми «Я это съел(а)», чтобы блюдо попало в дневник.</div>`}
+  </div>`:''}
+  <h2>Параметры</h2>
+  <div class="card">
+    <div class="seg" style="margin-bottom:12px">
+      <button class="${p.sex==='f'?'on':''}" onclick="setSex('f')">Женщина</button>
+      <button class="${p.sex==='m'?'on':''}" onclick="setSex('m')">Мужчина</button>
+    </div>
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr">
+      <div><label>Возраст</label><input id="age" type="number" inputmode="numeric" value="${p.age}"></div>
+      <div><label>Рост, см</label><input id="height" type="number" inputmode="numeric" value="${p.height}"></div>
+      <div><label>Вес, кг</label><input id="weight" type="number" inputmode="decimal" value="${p.weight}"></div>
+    </div>
+    <div style="margin-top:10px"><label>Активность</label>
+      <select id="act">${ACT.map(([v,t])=>`<option value="${v}" ${+p.act===v?'selected':''}>${t}</option>`).join('')}</select></div>
+  </div>
+  <h2>Чего хочешь от питания?</h2>
+  <div class="goals">${Object.entries(GOALS).map(([k,g])=>`<div class="goal ${p.goal===k?'on':''}" onclick="pick('goal','${k}',this)"><b>${g.e} ${g.n}</b><span>${g.d}</span></div>`).join('')}</div>
+  <h2>Тип питания</h2>
+  <div class="chips" id="diets">${Object.entries(DIETS).map(([k,t])=>`<span class="chip ${p.diet===k?'on':''}" onclick="pick('diet','${k}',this)">${t}</span>`).join('')}</div>
+  <div class="hint" style="margin-top:8px">Все рецепты составлены по правилам раздельного питания: белок с овощами, крупы с овощами, фрукты отдельно.</div>
+  <div style="margin-top:18px"><button class="btn" onclick="saveProfile()">${S.profile?'Пересчитать':'Рассчитать норму'}</button></div>`;
+}
+let draft = null;
+function getDraft(){ if(!draft) draft = {...(S.profile||{sex:'f',goal:'keep',diet:'balanced'})}; return draft; }
+function setSex(s){ getDraft().sex=s; document.querySelectorAll('.seg button').forEach((b,i)=>b.classList.toggle('on',(i===0)===(s==='f'))); haptic(); }
+function pick(field,val,el){
+  getDraft()[field]=val;
+  el.parentNode.querySelectorAll('.on').forEach(x=>x.classList.remove('on')); el.classList.add('on'); haptic();
+}
+function saveProfile(){
+  const d = getDraft();
+  const age=+$('#age').value, height=+$('#height').value, weight=+$('#weight').value;
+  if(!(age>=12&&age<=100&&height>=120&&height<=230&&weight>=30&&weight<=300)){ toast('Проверь возраст, рост и вес'); return; }
+  S.profile = {sex:d.sex||'f',age,height,weight,act:+$('#act').value,goal:d.goal||'keep',diet:d.diet||'balanced'};
+  draft=null; save(); haptic('medium'); toast('Норма рассчитана ✨'); render();
+}
+
+/* ---------- FRIDGE ---------- */
+function vFridge(){
+  const q=S.q.trim().toLowerCase();
+  return `
+  <h1>Что есть дома?</h1>
+  <div class="hint">Отметь продукты, которые у тебя есть, и я подберу рецепты. Соль, специи и немного масла для жарки считаются по умолчанию.</div>
+  <div class="row" style="margin-top:12px">
+    <input id="q" placeholder="🔍 Поиск продукта" value="${S.q.replace(/"/g,'&quot;')}" oninput="S.q=this.value;renderFridgeList()">
+    ${S.fridge.size?`<button class="btn ghost small" onclick="S.fridge.clear();save();render()">Очистить</button>`:''}
+  </div>
+  <div class="hint" style="margin-top:8px">Выбрано: <b id="cnt">${S.fridge.size}</b></div>
+  <div id="flist">${fridgeList(q)}</div>
+  ${S.shop.length?`<h2>🛒 Список покупок</h2>
+  <div class="card"><div class="chips">${S.shop.map(i=>`<span class="chip" onclick="bought('${i}')">${ING[i].e} ${ING[i].n} ✓</span>`).join('')}</div>
+  <div class="hint" style="margin-top:8px">Нажми на продукт, когда купишь, и он переедет в холодильник.</div>
+  <button class="btn ghost small" style="margin-top:8px" onclick="S.shop=[];save();render()">Очистить список</button></div>`:''}
+  <div style="margin-top:18px"><button class="btn" onclick="go('recipes')">Показать, что приготовить →</button></div>`;
+}
+function fridgeList(q){
+  return SECTIONS.map(([u,t])=>{
+    const ids = Object.keys(ING).filter(i=>ING[i].u===u && (!q || ING[i].n.toLowerCase().includes(q)));
+    if(!ids.length) return '';
+    return `<h2>${t}</h2><div class="chips">${ids.map(i=>`<span class="chip ${S.fridge.has(i)?'on':''}" data-ing="${i}">${ING[i].e} ${ING[i].n}</span>`).join('')}</div>`;
+  }).join('') || '<div class="empty">Ничего не нашлось</div>';
+}
+function renderFridgeList(){ $('#flist').innerHTML = fridgeList(S.q.trim().toLowerCase()); }
+function bought(i){ S.shop=S.shop.filter(x=>x!==i); S.fridge.add(i); save(); haptic(); render(); }
+
+/* ---------- RECIPES ---------- */
+function vRecipes(){
+  const list = pool(S.meal);
+  const now = list.filter(r=>missing(r).length===0);
+  const soon = list.filter(r=>{const m=missing(r).length;return m>0&&m<=2&&m<r.ing.length});
+  const p=prof();
+  return `
+  <h1>Что приготовить</h1>
+  <div class="hint">${GOALS[p.goal].e} ${GOALS[p.goal].n} · ${DIETS[p.diet]}${S.profile?'':' · <a style="color:var(--accent)" onclick="go(\'profile\')">настроить профиль</a>'}</div>
+  <div class="chips" style="margin-top:12px">
+    ${[['all','Все'],...Object.entries(MEALS)].map(([k,t])=>`<span class="chip ${S.meal===k?'on':''}" onclick="S.meal='${k}';render()">${t}</span>`).join('')}
+  </div>
+  ${!S.fridge.size?`<div class="card empty">🧊 Холодильник пока пуст.<br><br><button class="btn small" onclick="go('fridge')">Отметить продукты</button></div>
+     <h2>Подходят под твою цель</h2>${list.slice(0,10).map(r=>recipeCard(r,false)).join('')}`:`
+  <h2>✅ Можно приготовить сейчас</h2>
+  ${now.length?now.map(r=>recipeCard(r)).join(''):'<div class="card empty">Из того, что есть, полноценного блюда пока не получается. Загляни в список ниже 👇</div>'}
+  <h2>🛒 Докупи 1–2 продукта</h2>
+  ${soon.length?soon.map(r=>recipeCard(r)).join(''):'<div class="card empty">Отметь больше продуктов, чтобы появились варианты</div>'}`}
+  `;
+}
+
+function openRecipe(id){
+  const r = RECIPES.find(x=>x.id===id); if(!r) return;
+  const n = S.profile?calcNorm(S.profile):null;
+  const miss = missing(r);
+  const cp = compat(r.ing);
+  const pct = n?Math.round(r.k/n.kcal*100):null;
+  const ov = document.createElement('div'); ov.className='ov';
+  ov.innerHTML = `<div class="sheet">
+    <button class="x" onclick="closeModal()">✕</button>
+    <div style="font-size:44px">${r.e}</div>
+    <h1>${r.n}</h1>
+    <div class="macro" style="font-size:14px">${macro(r)}</div>
+    ${n?`<div class="hint" style="margin-top:4px">Это ${pct}% твоей дневной нормы калорий и ${Math.round(r.p/n.prot*100)}% нормы белка</div>`:''}
+    <div class="verdict good">🟢 ${cp.good}</div>
+    <h2>Ингредиенты</h2>
+    <div class="chips">${r.ing.map(i=>`<span class="chip ${S.fridge.has(i)?'on':'miss'}">${S.fridge.has(i)?'✓':'+'} ${ING[i].e} ${ING[i].n}</span>`).join('')}
+      ${r.opt.map(i=>`<span class="chip" style="opacity:.7">${ING[i].e} ${ING[i].n} (по желанию)</span>`).join('')}</div>
+    <h2>Как готовить</h2>
+    <ol class="steps">${r.s.map(s=>`<li>${s}</li>`).join('')}</ol>
+    <div style="display:grid;gap:8px;margin-top:16px">
+      <button class="btn" onclick="ate('${r.id}')">Я это съел(а) ✓</button>
+      ${miss.length?`<button class="btn ghost" onclick="toShop('${r.id}')">🛒 Добавить в покупки: ${miss.map(i=>ING[i].n.toLowerCase()).join(', ')}</button>`:''}
+    </div></div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov) closeModal(); });
+  document.body.appendChild(ov);
+  try{ tg && tg.BackButton.show(); }catch(e){}
+  haptic();
+}
+function closeModal(){ document.querySelectorAll('.ov').forEach(o=>o.remove()); try{ tg && tg.BackButton.hide(); }catch(e){} }
+function ate(id){
+  const r=RECIPES.find(x=>x.id===id); S.log.items.push({id,k:r.k,p:r.p,f:r.f,c:r.c}); save();
+  try{ tg && tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
+  closeModal(); toast('Добавлено в дневник 🍽'); if(S.tab==='profile') render();
+}
+function toShop(id){
+  const r=RECIPES.find(x=>x.id===id); missing(r).forEach(i=>{ if(!S.shop.includes(i)) S.shop.push(i); }); save();
+  closeModal(); toast('Добавлено в список покупок 🛒');
+}
+
+/* ---------- CRYSTAL BALL ---------- */
+function vBall(){
+  const b = S.ball;
+  const r = b && RECIPES.find(x=>x.id===b.id);
+  const p = prof();
+  return `
+  <div class="stage" id="stage">
+    <div style="font-family:Georgia,serif;font-size:22px;letter-spacing:.5px">Хрустальный шар</div>
+    <div class="hint">Не знаешь, что съесть? Коснись шара</div>
+    <div class="orbwrap" id="orb" onclick="divine()">
+      <div class="orb"><div class="in ${r?'':'q'}">${r?r.e:'?'}</div></div>
+      <div class="base"></div>
+    </div>
+    ${r?`<div class="prophecy">
+      <div class="say">${b.say}</div>
+      <div class="rname">${r.n}</div>
+      <div class="macro">${macro(r)}</div>
+      <div class="hint" style="margin-top:6px">${b.note}</div>
+      <div class="row" style="margin-top:14px;justify-content:center">
+        <button class="btn small" onclick="openRecipe('${r.id}')">Открыть рецепт</button>
+        <button class="btn small ghost" style="background:rgba(255,255,255,.12);color:#fff" onclick="divine()">Ещё раз 🔮</button>
+      </div></div>`:`<div class="hint" style="margin-top:18px">Шар учтёт время суток (${MEALS[mealNow()].toLowerCase()}), продукты в холодильнике, твою цель (${GOALS[p.goal].n.toLowerCase()}) и тип питания</div>`}
+  </div>
+  ${!S.profile?`<div class="card"><b>✨ Настрой профиль</b><div class="hint">Укажи вес, рост и цель, и шар будет предсказывать точнее.</div><button class="btn small" style="margin-top:10px" onclick="go('profile')">Настроить</button></div>`:''}
+  ${!S.fridge.size?`<div class="card"><b>🧊 Отметь продукты</b><div class="hint">Тогда шар предложит то, что можно приготовить прямо сейчас.</div><button class="btn small" style="margin-top:10px" onclick="go('fridge')">В холодильник</button></div>`:''}`;
+}
+function sparkles(){
+  const st=$('#stage'); if(!st) return;
+  for(let i=0;i<14;i++){ const s=document.createElement('span'); s.className='spark';
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.animationDelay=(Math.random()*2.4)+'s'; st.appendChild(s); }
+}
+let divining=false;
+function divine(){
+  if(divining) return; divining=true;
+  const o=$('#orb'); o.classList.add('shake');
+  try{ tg && tg.HapticFeedback.impactOccurred('heavy'); }catch(e){}
+  let n=0; const iv=setInterval(()=>{ haptic('soft'); if(++n>5) clearInterval(iv); },220);
+  setTimeout(()=>{
+    const meal=mealNow();
+    let cands = pool(meal); if(!cands.length) cands = pool('all');
+    const prev = S.ball && S.ball.id;
+    const now = cands.filter(r=>missing(r).length===0);
+    const soon = cands.filter(r=>{const m=missing(r).length;return m>0&&m<=2&&m<r.ing.length});
+    let tier = now.length?now:soon.length?soon:cands.slice(0,8);
+    if(tier.length>1) tier = tier.filter(r=>r.id!==prev);
+    const r = tier[Math.floor(Math.random()*tier.length)];
+    const miss = missing(r);
+    S.ball = {id:r.id, say:PROPHECIES[Math.floor(Math.random()*PROPHECIES.length)],
+      note: !S.fridge.size ? 'Подходит под твою цель' : miss.length===0 ? '✅ Всё нужное у тебя уже есть' : `🛒 Нужно докупить: ${miss.map(i=>ING[i].n.toLowerCase()).join(', ')}`};
+    try{ tg && tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
+    divining=false; render();
+  },1500);
+}
+
+/* ---------- COMPAT ---------- */
+function vCompat(){
+  const ids=[...S.compat];
+  const res = ids.length>1 ? compat(ids) : null;
+  const icon={good:'🟢',warn:'🟡',bad:'🔴'};
+  return `
+  <h1>Проверка сочетаний</h1>
+  <div class="hint">Выбери продукты, которые хочешь съесть вместе, и я скажу, как они усваиваются.</div>
+  <div id="cres">${ids.length<2?'<div class="card empty">Выбери хотя бы 2 продукта</div>':
+    res.level==='good'?`<div class="verdict good">${icon.good} <b>Отлично сочетается.</b> ${res.good}</div>`:
+    res.issues.map(i=>`<div class="verdict ${i.l}">${icon[i.l]} ${i.t}</div>`).join('')}</div>
+  ${ids.length?`<button class="btn ghost small" onclick="S.compat.clear();render()">Сбросить выбор</button>`:''}
+  ${SECTIONS.map(([u,t])=>`<h2>${t}</h2><div class="chips">${Object.keys(ING).filter(i=>ING[i].u===u).map(i=>`<span class="chip ${S.compat.has(i)?'on':''}" data-cmp="${i}">${ING[i].e} ${ING[i].n}</span>`).join('')}</div>`).join('')}
+  <h2>📜 Шпаргалка</h2>
+  <div class="card"><ul class="rules" style="padding-left:18px;margin:0">
+    <li>🟢 <b>Мясо, рыба, яйца + некрахмалистые овощи</b> — идеально</li>
+    <li>🟢 <b>Крупы, картофель, паста + овощи</b> — хорошо</li>
+    <li>🔴 <b>Мясо + рис, картофель, макароны</b> — тяжело: белок и крахмал мешают друг другу</li>
+    <li>🟡 <b>Один вид белка за приём</b>: не смешивай мясо с яйцами или рыбой</li>
+    <li>🔴 <b>Сладкие фрукты отдельно</b>, за 30 минут до еды или через 2 часа после</li>
+    <li>🟢 <b>Кисломолочка + ягоды, орехи, зелень</b> — хороший перекус</li>
+    <li>🟡 <b>Молоко</b> — отдельный приём пищи</li>
+    <li>🟢 <b>Зелень, огурцы, листовые овощи</b> сочетаются почти со всем</li>
+  </ul></div>
+  <div class="hint" style="margin-top:8px">Правила основаны на принципах раздельного питания. Это не медицинская рекомендация: при заболеваниях ЖКТ посоветуйся с врачом.</div>`;
+}
+
+/* ================== EVENTS & INIT ================== */
+document.addEventListener('click',e=>{
+  const nav=e.target.closest('[data-tab]'); if(nav){ haptic(); go(nav.dataset.tab); return; }
+  const rc=e.target.closest('[data-r]'); if(rc){ openRecipe(rc.dataset.r); return; }
+  const ing=e.target.closest('[data-ing]');
+  if(ing){ const i=ing.dataset.ing; S.fridge.has(i)?S.fridge.delete(i):S.fridge.add(i); ing.classList.toggle('on'); save(); haptic();
+    const c=$('#cnt'); if(c) c.textContent=S.fridge.size; return; }
+  const cmp=e.target.closest('[data-cmp]');
+  if(cmp){ const i=cmp.dataset.cmp; S.compat.has(i)?S.compat.delete(i):S.compat.add(i); haptic(); const y=window.scrollY; render(); window.scrollTo(0,y); }
+});
+
+if(tg){
+  try{
+    tg.ready(); tg.expand();
+    if(tg.colorScheme==='light') document.documentElement.classList.add('light');
+    tg.onEvent('themeChanged',()=>document.documentElement.classList.toggle('light',tg.colorScheme==='light'));
+    tg.BackButton.onClick(closeModal);
+  }catch(e){}
+} else if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) {
+  document.documentElement.classList.add('light');
+}
+S.tab = S.profile ? 'ball' : 'profile';
+renderNav(); render();
+</script>
+</body>
+</html>
