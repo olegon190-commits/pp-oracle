@@ -112,36 +112,97 @@ ol.steps{padding-left:20px}ol.steps li{margin:7px 0}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);color:var(--text);padding:10px 18px;border-radius:99px;font-size:14px;font-weight:500;z-index:30;animation:fade .2s;white-space:nowrap}
 
 /* хрустальный шар */
-.stage{color-scheme:dark;position:relative;background:radial-gradient(ellipse at 50% 30%,#2a1a55 0%,#120b26 60%,#0a0716 100%);border-radius:30px;padding:26px 16px 22px;text-align:center;overflow:hidden;color:#F3F0E6;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 16px 40px rgba(18,11,38,.35)}
-.stage .ttl{font:400 22px Georgia,serif;letter-spacing:.5px}
-.stage .hint{color:#b9aee0}
-.orbwrap{position:relative;width:220px;margin:12px auto 0;cursor:pointer;filter:drop-shadow(0 0 30px rgba(139,92,246,.6))}
-.orbwrap.shake{filter:drop-shadow(0 0 50px rgba(236,72,153,.9))}
-.orb{width:220px;height:220px;border-radius:50%;position:relative;overflow:hidden;clip-path:circle(50%);isolation:isolate;
-  background:radial-gradient(circle at 50% 60%,#c4b5fd 0%,#7c3aed 34%,#3b0764 70%,#12002b 100%);
-  box-shadow:inset -22px -30px 60px rgba(0,0,0,.55),inset 12px 12px 40px rgba(255,255,255,.25)}
-.orb::before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,transparent,rgba(236,72,153,.45),transparent 30%,rgba(56,189,248,.4),transparent 60%,rgba(250,204,21,.3),transparent 85%);filter:blur(18px);animation:spin 14s linear infinite;mix-blend-mode:screen}
-.orb::after{content:"";position:absolute;left:18%;top:10%;width:34%;height:22%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.9),rgba(255,255,255,0) 70%);transform:rotate(-25deg)}
-.orb .in{position:absolute;inset:0;display:grid;place-items:center;font-size:64px;z-index:2;transition:opacity .4s,transform .4s;text-shadow:0 0 20px rgba(255,255,255,.6)}
-.orb .in.q{font:54px Georgia,serif;color:rgba(255,255,255,.75)}
-.base{width:170px;height:46px;margin:-18px auto 0;border-radius:50% 50% 14px 14px/60% 60% 14px 14px;background:linear-gradient(#b4873a,#5c3b12);box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 10px 25px rgba(0,0,0,.5);position:relative}
-.orbwrap.shake .orb{animation:shake .5s ease-in-out 3}
-.orbwrap.shake .orb::before{animation-duration:1.2s}
-.orbwrap.shake .in{opacity:0;transform:scale(.5)}
-.spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;animation:tw 2.4s infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shake{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-6px,2px) rotate(-3deg)}75%{transform:translate(6px,-2px) rotate(3deg)}}
+.stage{color-scheme:dark;position:relative;isolation:isolate;border-radius:32px;padding:26px 16px 22px;text-align:center;overflow:hidden;color:#F4F0FF;
+  background:radial-gradient(120% 80% at 50% 0%,#2c1863 0%,#150b36 46%,#07051a 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.05),0 20px 50px rgba(20,8,50,.45)}
+.stage>*{position:relative;z-index:2}
+.stage .nebula,.stage .beam,.stage .fx{position:absolute;z-index:0;pointer-events:none}
+.nebula{inset:-20%}
+.nebula::before,.nebula::after{content:"";position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;animation:neb 18s ease-in-out infinite alternate}
+.nebula::before{width:60%;height:45%;left:-5%;top:30%;background:#c026d3}
+.nebula::after{width:55%;height:40%;right:-5%;top:12%;background:#0891b2;animation-delay:-9s;opacity:.4}
+@keyframes neb{to{transform:translate(8%,-6%) scale(1.15)}}
+.beam{left:50%;top:-10px;width:320px;height:340px;transform:translateX(-50%);background:linear-gradient(180deg,rgba(214,200,255,.22),rgba(214,200,255,0) 85%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);filter:blur(10px);animation:beam 6s ease-in-out infinite alternate}
+@keyframes beam{to{opacity:.55}}
+.fx{inset:0;z-index:1}
+.stage .ttl{font:700 22px/1.2 var(--display);letter-spacing:-.01em;background:linear-gradient(180deg,#fff 30%,#c9b8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stage .sub{font-size:14px;color:rgba(226,216,255,.7);margin-top:4px}
+.stage .hint{color:rgba(226,216,255,.62)}
+
+/* сцена: пол, подставка, шар */
+.scene{position:relative;width:260px;height:292px;margin:6px auto 0;cursor:pointer;--tx:0;--ty:0}
+.floor{position:absolute;left:50%;bottom:4px;width:250px;height:54px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(139,92,246,.55),rgba(139,92,246,0));filter:blur(6px);animation:floor 5s ease-in-out infinite}
+.floor::after{content:"";position:absolute;left:25%;right:25%;top:30%;bottom:30%;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(6px)}
+@keyframes floor{50%{transform:translateX(-50%) scale(.92);opacity:.8}}
+.ped{position:absolute;left:50%;bottom:22px;width:150px;height:70px;transform:translateX(-50%)}
+.ped-body{position:absolute;inset:14px 0 0 0;clip-path:polygon(12% 0,88% 0,100% 82%,0 82%);
+  background:linear-gradient(90deg,#2a1804,#6b4512 12%,#c8973c 30%,#ffe7a3 40%,#c8973c 52%,#7a5016 72%,#2a1804)}
+.ped-body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:24%;border-radius:50%;background:linear-gradient(90deg,#1c1003,#5c3b0f 20%,#b08232 42%,#5c3b0f 70%,#1c1003)}
+.ped-rim,.ped-front{position:absolute;left:50%;top:0;width:132px;height:30px;transform:translateX(-50%);border-radius:50%;
+  background:linear-gradient(90deg,#3a2408,#9c6e24 18%,#f5d688 40%,#d7a74c 55%,#6b4512 82%,#2a1804)}
+.ped-rim{box-shadow:inset 0 -8px 12px rgba(0,0,0,.55)}
+.ped-rim::after{content:"";position:absolute;inset:4px 10px;border-radius:50%;background:radial-gradient(closest-side,rgba(196,170,255,.9),rgba(124,58,237,.2) 70%,transparent);mix-blend-mode:screen}
+.ped-front{z-index:4;clip-path:inset(50% 0 0 0);box-shadow:inset 0 3px 3px rgba(255,240,200,.5),0 6px 10px rgba(0,0,0,.35)}
+
+.tilt{position:absolute;left:50%;top:14px;width:208px;height:208px;margin-left:-104px;z-index:3;
+  transform:perspective(700px) rotateY(calc(var(--tx)*9deg)) rotateX(calc(var(--ty)*-9deg));transition:transform .25s ease-out}
+.bob{width:100%;height:100%;animation:bob 5s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(139,92,246,.55)) drop-shadow(0 0 60px rgba(192,38,211,.25));transition:filter .4s}
+@keyframes bob{50%{transform:translateY(-7px)}}
+.orb{width:100%;height:100%;border-radius:50%;position:relative;overflow:hidden;clip-path:circle(50%);isolation:isolate;
+  background:radial-gradient(circle at 50% 60%,#5b2bd6 0%,#2a0d7a 45%,#12053d 75%,#060218 100%)}
+.smoke{position:absolute;border-radius:50%;filter:blur(11px);mix-blend-mode:screen;
+  transform:translate(calc(var(--tx)*7px),calc(var(--ty)*7px))}
+.smoke i{position:absolute;inset:0;border-radius:50%}
+.s1{inset:6%}.s1 i{background:radial-gradient(circle at 28% 38%,#ec4899,transparent 36%),radial-gradient(circle at 72% 66%,#22d3ee,transparent 34%),radial-gradient(circle at 50% 18%,rgba(255,255,255,.5),transparent 22%);animation:swirl 9s linear infinite}
+.s2{inset:2%}.s2 i{background:radial-gradient(circle at 62% 26%,#a78bfa,transparent 34%),radial-gradient(circle at 36% 76%,rgba(250,204,21,.75),transparent 30%),radial-gradient(circle at 80% 40%,#d946ef,transparent 26%);animation:swirl 14s linear infinite reverse}
+.s3{inset:24%}.s3 i{background:radial-gradient(circle,rgba(255,236,255,.55),rgba(216,180,254,.22) 40%,transparent 68%);animation:pulse 4s ease-in-out infinite}
+.vortex{position:absolute;inset:-10%;border-radius:50%;background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.5),transparent 25%,rgba(236,72,153,.6),transparent 50%,rgba(56,189,248,.6),transparent 75%);filter:blur(10px);mix-blend-mode:screen;opacity:0;transition:opacity .4s}
+@keyframes swirl{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(1.18);opacity:.75}}
+.orb .in{position:absolute;inset:0;display:grid;place-items:center;font-size:66px;z-index:2;filter:drop-shadow(0 0 14px rgba(255,255,255,.55));transition:opacity .35s,transform .35s,filter .35s}
+.orb .in.q{font:300 62px var(--display);color:rgba(255,255,255,.82);text-shadow:0 0 24px rgba(216,180,254,.9)}
+.orb .in.reveal{animation:emerge .9s cubic-bezier(.2,.9,.25,1.2) both}
+@keyframes emerge{from{opacity:0;transform:scale(.3);filter:blur(12px) drop-shadow(0 0 30px #fff)}}
+/* стекло: френелевский ободок и блики */
+.rim{position:absolute;inset:0;border-radius:50%;z-index:3;pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),inset 0 0 22px rgba(216,200,255,.45),inset -24px -32px 50px rgba(0,0,0,.7),inset 16px 12px 30px rgba(255,255,255,.14)}
+.spec{position:absolute;z-index:4;left:15%;top:8%;width:40%;height:24%;border-radius:50%;background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.95),rgba(255,255,255,.25) 45%,transparent 70%);
+  transform:translate(calc(var(--tx)*-10px),calc(var(--ty)*-8px)) rotate(-28deg)}
+.spec2{position:absolute;z-index:4;inset:6%;border-radius:50%;border:2px solid transparent;border-bottom-color:rgba(255,255,255,.32);border-right-color:rgba(255,255,255,.12);filter:blur(.6px);
+  transform:translate(calc(var(--tx)*-4px),calc(var(--ty)*-4px)) rotate(22deg)}
+.dot{position:absolute;z-index:4;right:22%;bottom:16%;width:7%;height:5%;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(1px)}
+.flash{position:absolute;inset:0;z-index:5;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 65%);opacity:0;pointer-events:none}
+
+/* гадание */
+.scene.casting .tilt{animation:quake .45s ease-in-out 3}
+.scene.casting .bob{filter:drop-shadow(0 0 40px rgba(236,72,153,.9)) drop-shadow(0 0 90px rgba(139,92,246,.7))}
+.scene.casting .vortex{opacity:1;animation:swirl .9s linear infinite}
+.scene.casting .s1 i{animation-duration:2s}.scene.casting .s2 i{animation-duration:2.6s}
+.scene.casting .in{opacity:0;transform:scale(.4);filter:blur(8px)}
+.scene.casting .flash{animation:flash 1.5s ease-in forwards}
+.scene.casting .floor{animation:none;opacity:1;transform:translateX(-50%) scale(1.15)}
+@keyframes quake{0%,100%{transform:perspective(700px) rotate(0)}25%{transform:perspective(700px) translate(-5px,2px) rotate(-3deg)}75%{transform:perspective(700px) translate(5px,-2px) rotate(3deg)}}
+@keyframes flash{0%,70%{opacity:0}90%{opacity:.9}100%{opacity:0}}
+
+/* искры */
+.star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff;animation:tw 2.6s infinite}
+.mote{position:absolute;bottom:-6px;width:3px;height:3px;border-radius:50%;background:#ffe7a8;box-shadow:0 0 8px 1px rgba(255,214,120,.9);animation:rise linear infinite;opacity:0}
 @keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
-.prophecy{margin-top:18px;animation:up .4s}
-.prophecy .say{font-family:Georgia,serif;font-style:italic;color:#d8ccff;font-size:15px}
-.prophecy .rname{font:700 19px/1.25 var(--display);margin:8px 0 6px}
-.stage .macro{color:#b9aee0}
-.stage .btn:not(.ghost){background:linear-gradient(180deg,#9b6dff,#7c3aed);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 20px rgba(124,58,237,.45)}
-.stage .btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+@keyframes rise{10%{opacity:.9}80%{opacity:.6}100%{opacity:0;transform:translate(var(--dx,10px),-420px)}}
+
+/* предсказание */
+.prophecy{margin-top:16px;padding:16px 14px;border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);animation:prophecy .7s cubic-bezier(.2,.9,.3,1) both}
+@keyframes prophecy{from{opacity:0;transform:translateY(14px);filter:blur(8px)}}
+.prophecy .say{font:600 11px/1.4 var(--font);letter-spacing:.14em;text-transform:uppercase;color:#c9b8ff}
+.prophecy .rname{font:700 19px/1.25 var(--display);margin:8px 0 6px;color:#fff}
+.stage .macro{color:rgba(226,216,255,.7)}
+.stage .btn:not(.ghost){background:linear-gradient(180deg,#a17bff,#7c3aed);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px rgba(124,58,237,.5)}
+.stage .btn.ghost{background:rgba(255,255,255,.1);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.idle-hint{margin-top:14px;font-size:13px;color:rgba(226,216,255,.6)}
 
 /* Android: стекло дороже по производительности — чуть меньше размытия */
 html.pf-android .card,html.pf-android nav{-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%)}
-@media (prefers-reduced-motion:reduce){.bg i,.orb::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.bg i,.smoke i,.bob,.mote,.nebula::before,.nebula::after,.beam,.floor{animation:none}}
 </style>
 </head>
 <body>
@@ -575,13 +636,23 @@ function vBall(){
   const b = S.ball;
   const r = b && RECIPES.find(x=>x.id===b.id);
   const p = prof();
+  const fresh = S.ballFresh; S.ballFresh = false;
   return `
   <div class="stage" id="stage">
+    <div class="nebula"></div><div class="beam"></div><div class="fx" id="fx"></div>
     <div class="ttl">Хрустальный шар</div>
-    <div class="hint">Не знаешь, что съесть? Коснись шара</div>
-    <div class="orbwrap" id="orb" onclick="divine()">
-      <div class="orb"><div class="in ${r?'':'q'}">${r?r.e:'?'}</div></div>
-      <div class="base"></div>
+    <div class="sub">Не знаешь, что съесть? Коснись шара</div>
+    <div class="scene" id="orb" onclick="divine()">
+      <div class="floor"></div>
+      <div class="ped"><div class="ped-body"></div><div class="ped-rim"></div></div>
+      <div class="tilt"><div class="bob"><div class="orb">
+        <div class="smoke s1"><i></i></div><div class="smoke s2"><i></i></div><div class="smoke s3"><i></i></div>
+        <div class="vortex"></div>
+        <div class="in ${r?'':'q'} ${fresh?'reveal':''}">${r?r.e:'?'}</div>
+        <div class="rim"></div><div class="spec"></div><div class="spec2"></div><div class="dot"></div>
+        <div class="flash"></div>
+      </div></div></div>
+      <div class="ped" style="pointer-events:none"><div class="ped-front"></div></div>
     </div>
     ${r?`<div class="prophecy">
       <div class="say">${b.say}</div>
@@ -591,22 +662,55 @@ function vBall(){
       <div class="row" style="margin-top:14px;justify-content:center">
         <button class="btn small" onclick="openRecipe('${r.id}')">Открыть рецепт</button>
         <button class="btn small ghost" onclick="divine()">Ещё раз 🔮</button>
-      </div></div>`:`<div class="hint" style="margin-top:18px">Шар учтёт время суток (${MEALS[mealNow()].toLowerCase()}), продукты в холодильнике, твою цель (${GOALS[p.goal].n.toLowerCase()}) и тип питания</div>`}
+      </div></div>`:`<div class="idle-hint">Шар учтёт время суток (${MEALS[mealNow()].toLowerCase()}), продукты в холодильнике, твою цель (${GOALS[p.goal].n.toLowerCase()}) и тип питания</div>`}
   </div>
   ${!S.profile?`<div class="card"><b>✨ Настрой профиль</b><div class="hint">Укажи вес, рост и цель, и шар будет предсказывать точнее.</div><button class="btn small" style="margin-top:10px" onclick="go('profile')">Настроить</button></div>`:''}
   ${!S.fridge.size?`<div class="card"><b>🧊 Отметь продукты</b><div class="hint">Тогда шар предложит то, что можно приготовить прямо сейчас.</div><button class="btn small" style="margin-top:10px" onclick="go('fridge')">В холодильник</button></div>`:''}`;
 }
 function sparkles(){
-  const st=$('#stage'); if(!st) return;
-  for(let i=0;i<14;i++){ const s=document.createElement('span'); s.className='spark';
-    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%'; s.style.animationDelay=(Math.random()*2.4)+'s'; st.appendChild(s); }
+  const fx=$('#fx'); if(!fx) return;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  for(let i=0;i<22;i++){ const s=document.createElement('span'); s.className='star';
+    s.style.cssText=`left:${rnd(0,100)}%;top:${rnd(0,70)}%;animation-delay:${rnd(0,2.6)}s;transform:scale(${rnd(.4,1)})`; fx.appendChild(s); }
+  for(let i=0;i<14;i++){ const m=document.createElement('span'); m.className='mote';
+    m.style.cssText=`left:${rnd(15,85)}%;animation-duration:${rnd(6,11)}s;animation-delay:${rnd(0,8)}s;--dx:${rnd(-30,30)}px`; fx.appendChild(m); }
+  initTilt();
 }
+
+/* объём: шар поворачивается за пальцем и за наклоном телефона */
+let tiltBound=false, tiltBase=null;
+function setTilt(x,y){
+  const sc=$('#orb'); if(!sc) return;
+  sc.style.setProperty('--tx',Math.max(-1,Math.min(1,x)).toFixed(3));
+  sc.style.setProperty('--ty',Math.max(-1,Math.min(1,y)).toFixed(3));
+}
+function initTilt(){
+  const st=$('#stage'); if(!st) return;
+  st.addEventListener('pointermove',e=>{ const r=st.getBoundingClientRect(); setTilt((e.clientX-r.left)/r.width*2-1,(e.clientY-r.top)/r.height*2-1); });
+  st.addEventListener('pointerleave',()=>setTilt(0,0));
+  if(tiltBound) return; tiltBound=true;
+  const onOrient=(beta,gamma)=>{
+    if(S.tab!=='ball' || beta==null) return;
+    if(!tiltBase) tiltBase={beta,gamma};
+    setTilt((gamma-tiltBase.gamma)/25,(beta-tiltBase.beta)/25);
+  };
+  try{
+    if(tg && tg.DeviceOrientation && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')){
+      tg.DeviceOrientation.start({refresh_rate:60});
+      const deg=v=>v*180/Math.PI;
+      tg.onEvent('deviceOrientationChanged',()=>onOrient(deg(tg.DeviceOrientation.beta),deg(tg.DeviceOrientation.gamma)));
+      return;
+    }
+  }catch(e){}
+  window.addEventListener('deviceorientation',e=>onOrient(e.beta,e.gamma));
+}
+
 let divining=false;
 function divine(){
   if(divining) return; divining=true;
-  const o=$('#orb'); o.classList.add('shake');
+  const o=$('#orb'); o.classList.add('casting');
   try{ tg && tg.HapticFeedback.impactOccurred('heavy'); }catch(e){}
-  let n=0; const iv=setInterval(()=>{ haptic('soft'); if(++n>5) clearInterval(iv); },220);
+  let n=0; const iv=setInterval(()=>{ haptic(n<3?'soft':'medium'); if(++n>5) clearInterval(iv); },220);
   setTimeout(()=>{
     const meal=mealNow();
     let cands = pool(meal); if(!cands.length) cands = pool('all');
@@ -619,6 +723,7 @@ function divine(){
     const miss = missing(r);
     S.ball = {id:r.id, say:PROPHECIES[Math.floor(Math.random()*PROPHECIES.length)],
       note: !S.fridge.size ? 'Подходит под твою цель' : miss.length===0 ? '✅ Всё нужное у тебя уже есть' : `🛒 Нужно докупить: ${miss.map(i=>ING[i].n.toLowerCase()).join(', ')}`};
+    S.ballFresh = true;
     try{ tg && tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
     divining=false; render();
   },1500);
